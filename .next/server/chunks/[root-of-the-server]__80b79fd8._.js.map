@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 7, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"","debugId":null}},
+    {"offset": {"line": 62, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/derek/OneDrive/Documents/Coding/Summer%20Project/summer-project/src/app/api/hello/route.ts"],"sourcesContent":["import { NextResponse } from 'next/server';\r\n\r\nexport async function GET() {\r\n  return NextResponse.json({ message: 'Herro herro herro' });\r\n}\r\n\r\nexport async function POST(request: Request) {\r\n  const body = await request.json();\r\n  return NextResponse.json({ message: 'Can I hab orduh prease?', data: body });\r\n} "],"names":[],"mappings":";;;;AAAA;;AAEO,eAAe;IACpB,OAAO,gIAAA,CAAA,eAAY,CAAC,IAAI,CAAC;QAAE,SAAS;IAAoB;AAC1D;AAEO,eAAe,KAAK,OAAgB;IACzC,MAAM,OAAO,MAAM,QAAQ,IAAI;IAC/B,OAAO,gIAAA,CAAA,eAAY,CAAC,IAAI,CAAC;QAAE,SAAS;QAA2B,MAAM;IAAK;AAC5E","debugId":null}}]
+}
