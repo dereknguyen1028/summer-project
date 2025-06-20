@@ -15,6 +15,22 @@ interface GyroscopeOptions {
 // Type for the callback
 type GyroCallback = (readings: GyroReadings) => void;
 
+interface Gyroscope extends EventTarget {
+  x: number | null;
+  y: number | null;
+  z: number | null;
+  start(): void;
+  stop(): void;
+  addEventListener(type: 'reading' | 'error', listener: (event: Event) => void): void;
+  removeEventListener(type: 'reading' | 'error', listener: (event: Event) => void): void;
+}
+
+interface Window {
+  Gyroscope?: {
+    new (options?: { frequency?: number }): Gyroscope;
+  };
+}
+
 export default function useGyroscope(
   options: GyroscopeOptions = {},
   callback?: GyroCallback
@@ -26,18 +42,17 @@ export default function useGyroscope(
   });
 
   useEffect(() => {
-    // Check if Gyroscope is available
-    const GyroscopeClass = (window as unknown as { Gyroscope?: new (options: GyroscopeOptions) => any }).Gyroscope;
-    let sensor: any;
+    const GyroscopeClass = window.Gyroscope;
+    let sensor: Gyroscope | undefined;
 
     if (GyroscopeClass) {
       sensor = new GyroscopeClass(options);
 
       const handleReading = () => {
         const readings: GyroReadings = {
-          x: sensor.x ?? null,
-          y: sensor.y ?? null,
-          z: sensor.z ?? null,
+          x: sensor?.x ?? null,
+          y: sensor?.y ?? null,
+          z: sensor?.z ?? null,
         };
         setAngularVelocity(readings);
         if (typeof callback === 'function') callback(readings);
@@ -54,15 +69,14 @@ export default function useGyroscope(
       sensor.start();
 
       return () => {
-        sensor.removeEventListener('reading', handleReading);
-        sensor.removeEventListener('error', handleError);
-        sensor.stop();
+        sensor?.removeEventListener('reading', handleReading);
+        sensor?.removeEventListener('error', handleError);
+        sensor?.stop();
       };
     } else {
       console.warn('Gyroscope is not supported by this browser.');
     }
-    // eslint-disable-next-line no-empty
-    return () => {};
+    return;
   }, [callback, options]);
 
   return angularVelocity;
