@@ -13,13 +13,12 @@ interface GyroscopeOptions {
 }
 
 // Type for the callback
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type GyroCallback = (readings: GyroReadings) => void;
+type GyroCallback = (readings: GyroReadings) => void;
 
-const useGyroscope = (
+export default function useGyroscope(
   options: GyroscopeOptions = {},
   callback?: GyroCallback
-): GyroReadings => {
+): GyroReadings {
   const [angularVelocity, setAngularVelocity] = useState<GyroReadings>({
     x: null,
     y: null,
@@ -27,47 +26,44 @@ const useGyroscope = (
   });
 
   useEffect(() => {
+    // Check if Gyroscope is available
+    const GyroscopeClass = (window as unknown as { Gyroscope?: new (options: GyroscopeOptions) => any }).Gyroscope;
     let sensor: any;
 
-    // @ts-ignore: Gyroscope may not exist on window in all browsers
-    if ('Gyroscope' in window) {
-      // @ts-ignore: Gyroscope may not exist on window in all browsers
-      sensor = new (window as any).Gyroscope(options);
+    if (GyroscopeClass) {
+      sensor = new GyroscopeClass(options);
 
-      sensor.start();
-      sensor.onreading = () => {
+      const handleReading = () => {
         const readings: GyroReadings = {
-          x: sensor.x,
-          y: sensor.y,
-          z: sensor.z,
+          x: sensor.x ?? null,
+          y: sensor.y ?? null,
+          z: sensor.z ?? null,
         };
-
         setAngularVelocity(readings);
-
-        if (typeof callback === 'function') {
-          callback(readings);
-        }
+        if (typeof callback === 'function') callback(readings);
       };
-      sensor.onerror = (event: any) => {
-        console.log(event.error.name, event.error.message);
-        setAngularVelocity({
-          x: null,
-          y: null,
-          z: null,
-        });
+
+      const handleError = (event: Event) => {
+        // @ts-expect-error: error property may exist
+        console.log(event.error?.name, event.error?.message);
+        setAngularVelocity({ x: null, y: null, z: null });
+      };
+
+      sensor.addEventListener('reading', handleReading);
+      sensor.addEventListener('error', handleError);
+      sensor.start();
+
+      return () => {
+        sensor.removeEventListener('reading', handleReading);
+        sensor.removeEventListener('error', handleError);
+        sensor.stop();
       };
     } else {
       console.warn('Gyroscope is not supported by this browser.');
     }
-
-    return () => {
-      if (sensor) {
-        sensor.stop();
-      }
-    };
+    // eslint-disable-next-line no-empty
+    return () => {};
   }, [callback, options]);
 
   return angularVelocity;
-};
-
-export default useGyroscope; 
+} 
